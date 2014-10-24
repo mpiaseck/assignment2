@@ -8,10 +8,9 @@
 (define SR 44100)
 (define (s sec) (* SR sec))
 (define (both a b) b)
-(define END-TIME (* 10 44100))
 
 (define snd (rs-read/clip "/Users/Matt/Google Drive/Cal Poly/CPE/Lab 4/revolution.wav"
-              (* 0 44100) END-TIME))
+              (* 0 44100) (* 105 44100)))
 
 ;; a frame is a nonnegative integer
 
@@ -39,6 +38,10 @@
 (define (time-to-play? cur next)
   (< (- next cur) LEAD-FRAMES))
 
+(check-expect (time-to-play? 44100 44200) #t)
+(check-expect (time-to-play? 44100 48200) #f)
+
+
 
 ;; queue a sound if it's time, and advance the
 ;; world and the playhead
@@ -56,10 +59,19 @@
                                (world-playing? w))))]
           [else w])))
 
+;; should play 1/10 of a second of sound from 10 seconds into the sound
+(check-expect (maybe-play-chunk 30 (make-world (s 10) 1000 true))
+              (make-world (+ (s 10) PLAY-CHUNK)
+                          (+ 1000 PLAY-CHUNK)
+                          true))
+
 ;; call maybe-play-chunk if song is not paused
 (define (maybe-maybe-play-chunk cur w)
   (cond [(world-playing? w) (maybe-play-chunk cur w)]
         [else w]))
+
+(check-expect (maybe-maybe-play-chunk 30 (make-world (s 10) 1000 false))
+              (make-world (s 10) 1000 false))
 
 ;; the on-tick function. calls maybe-play-chunk.
 ;; world -> world
@@ -69,31 +81,43 @@
 
 ;; THE GRAPHICS / UI 
 
-(define WORLD-WIDTH 650)
-(define WORLD-HEIGHT 1000)
-(define SLIDER-WIDTH (- WORLD-WIDTH 150))
+(define WORLD-WIDTH 600)
+(define WORLD-HEIGHT 100)
+(define TRIANGLE-SIDE 100)
+(define SLIDER-WIDTH (- WORLD-WIDTH TRIANGLE-SIDE))
 
 ;; the "play" triangle
 (define PLAY-IMG
-  (circle 50 "solid" "blue"))
+  (rotate
+   -90
+   (triangle TRIANGLE-SIDE "solid" "pink")))
 
 ;; the "pause" rectangles
 (define PAUSE-IMG
-  (circle 50 "outline" "black"))
+  (beside
+   (rectangle (/ TRIANGLE-SIDE 4)
+              TRIANGLE-SIDE
+              "solid"
+              "red")
+   (rectangle (/ TRIANGLE-SIDE 8)
+              1
+              "solid"
+              "white")
+   (rectangle (/ TRIANGLE-SIDE 4)
+              TRIANGLE-SIDE
+              "solid"
+              "red")))
 
 ;; draw a blank scene with a play head and a play/pause button
 ;; world -> scene
 (define (draw-world w)
   (draw-play
    w
-   (place-image (rectangle 10 100 "solid" "black")
-                (+ 150
+   (place-image (rectangle 10 WORLD-HEIGHT "solid" "black")
+                (+ TRIANGLE-SIDE
                    (* SLIDER-WIDTH (/ (world-play-head w) (rs-frames snd))))
-                100
-                (place-image (rectangle 500 100 "outline" "black")
-                400
-                100
-                (empty-scene WORLD-WIDTH WORLD-HEIGHT)))))
+                50
+                (empty-scene WORLD-WIDTH WORLD-HEIGHT))))
 
 
 ;; draw the appropriate play/pause shape on a scene
@@ -102,20 +126,35 @@
   (cond [(world-playing? w) 
          (place-image
           PLAY-IMG
-          75
-          100
+          (/ TRIANGLE-SIDE 2)
+          (/ WORLD-HEIGHT 2)
           scene)]
         [else 
          (place-image
           PAUSE-IMG
-          75
-          100
+          (/ TRIANGLE-SIDE 2)
+          (/ WORLD-HEIGHT 2)
           scene)]))
+
+(check-expect (draw-play (make-world (s 1) (s 2) true)
+                         (empty-scene WORLD-WIDTH WORLD-HEIGHT))
+              (place-image
+               PLAY-IMG
+               (/ TRIANGLE-SIDE 2)
+               (/ WORLD-HEIGHT 2)
+               (empty-scene WORLD-WIDTH WORLD-HEIGHT)))
+(check-expect (draw-play (make-world (s 1) (s 2) false)
+                         (empty-scene WORLD-WIDTH WORLD-HEIGHT))
+              (place-image
+               PAUSE-IMG
+               (/ TRIANGLE-SIDE 2)
+               (/ WORLD-HEIGHT 2)
+               (empty-scene WORLD-WIDTH WORLD-HEIGHT)))
 
 ;; change the world when a key is pressed
 ;; world number number event frame -> world
 (define (keh-wrapper w key cur-time)
-  (cond [(key=? key "1")
+  (cond [(key=? key " ")
          (make-world
           (world-play-head w)
           (max (world-next-start w)
