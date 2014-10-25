@@ -24,11 +24,14 @@
 (define-struct world2 (play-head next-start playing?))
 (define-struct world3 (play-head next-start playing?))
 (define-struct world4 (play-head next-start playing?))
-(define INITIAL-WORLD (make-world1 0 (s 0.5) false))
-(define INITIAL-SYSTEM (make-system (make-world1 0 (s 0.5) false) 
-                                     (make-world2 0 (s 0.5) false) 
-                                     (make-world3 0 (s 0.5) false) 
-                                     (make-world4 0 (s 0.5) false)))
+(define INITIAL-WORLD1 (make-world1 0 (s 0.5) false))
+(define INITIAL-WORLD2 (make-world2 0 (s 0.5) false))
+(define INITIAL-WORLD3 (make-world3 0 (s 0.5) false))
+(define INITIAL-WORLD4 (make-world4 0 (s 0.5) false))
+(define INITIAL-SYSTEM (make-system INITIAL-WORLD1
+                                    INITIAL-WORLD2
+                                    INITIAL-WORLD3
+                                    INITIAL-WORLD4))
 
 
 ;; PLAYING SOUNDS
@@ -38,8 +41,11 @@
 ;; how far ahead of time should we queue sounds?
 (define LEAD-FRAMES (round (s 0.05)))
 
-;; the pstream that we're going to use:
-(define ps (make-pstream))
+;; the pstreams that we're going to use:
+(define ps1 (make-pstream))
+(define ps2 (make-pstream))
+(define ps3 (make-pstream))
+(define ps4 (make-pstream))
 
 
 ;; given the current pstream time and the next
@@ -57,7 +63,7 @@
     (cond [(time-to-play? cur next-start)
            (local [(define playhead (if (< (world1-play-head w) END-TIME) (world1-play-head w) 0))
                    (define next-playhead (+ playhead PLAY-CHUNK))]
-             (both (pstream-queue ps
+             (both (pstream-queue ps1
                                   (clip snd playhead next-playhead)
                                   next-start)
                    (make-world1 next-playhead 
@@ -73,7 +79,7 @@
 ;; the on-tick function. calls maybe-play-chunk.
 ;; world -> world
 (define (tock w)
-  (maybe-maybe-play-chunk (pstream-current-frame ps) w))
+  (maybe-maybe-play-chunk (pstream-current-frame ps1) w))
 
 
 ;; THE GRAPHICS / UI 
@@ -82,7 +88,7 @@
 (define WORLD-HEIGHT 650)
 (define SLIDER-WIDTH (- WORLD-WIDTH 150))
 
-;; draw a blank scene with a play head and a play/pause button
+;; draw a blank scene with a 4 play heads and 4 play/pause circles
 ;; world -> scene
 (define (draw-world w)
   (draw-play
@@ -98,7 +104,7 @@
                 (empty-scene WORLD-WIDTH WORLD-HEIGHT))))))))
 
 
-;; draw the appropriate play/pause shape on a scene
+;; draw the appropriate play/pause shapes on a scene
 ;; world scene -> scene
 (define (draw-play w scene)
        (place-image (circle 50 (if (not (world1-playing? w)) "outline" "solid") 
@@ -132,9 +138,9 @@
 ;; from the effects of a hidden input, the current time.
 ;; world number number event -> world
 (define (keh w key)
-  (keh-wrapper w key (pstream-current-frame ps)))
+  (keh-wrapper w key (pstream-current-frame ps1)))
 
-(big-bang INITIAL-WORLD
+(big-bang INITIAL-WORLD1
           [to-draw draw-world]
           [on-tick tock]
           [on-key keh])
