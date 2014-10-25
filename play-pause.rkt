@@ -8,18 +8,27 @@
 (define SR 44100)
 (define (s sec) (* SR sec))
 (define (both a b) b)
-(define END-TIME (* 10 44100))
+(define END-TIME (* 25 44100))
+(define START-TIME (* 0 44100))
 
-(define snd (rs-read/clip "/Users/Matt/Google Drive/Cal Poly/CPE/Lab 4/revolution.wav"
-              (* 0 44100) END-TIME))
+(define snd (rs-read/clip "/Users/Matt/Google Drive/Cal Poly/CPE/Assignment 2/revolution.wav"
+              START-TIME END-TIME))
 
 ;; a frame is a nonnegative integer
 
 ;; a world is (make-world frame frame boolean), representing
 ;; the frame at which to continue playing, and the
 ;; pstream time at which to play it, and whether it's playing
-(define-struct world (play-head next-start playing?))
-(define INITIAL-WORLD (make-world 0 (s 0.5) false))
+(define-struct system (world1 world2 world3 world4))
+(define-struct world1 (play-head next-start playing?))
+(define-struct world2 (play-head next-start playing?))
+(define-struct world3 (play-head next-start playing?))
+(define-struct world4 (play-head next-start playing?))
+(define INITIAL-WORLD (make-world1 0 (s 0.5) false))
+(define INITIAL-SYSTEM (make-system (make-world1 0 (s 0.5) false) 
+                                     (make-world2 0 (s 0.5) false) 
+                                     (make-world3 0 (s 0.5) false) 
+                                     (make-world4 0 (s 0.5) false)))
 
 
 ;; PLAYING SOUNDS
@@ -44,21 +53,21 @@
 ;; world and the playhead
 ;; number world -> world
 (define (maybe-play-chunk cur w)
-  (local [(define next-start (world-next-start w))]
+  (local [(define next-start (world1-next-start w))]
     (cond [(time-to-play? cur next-start)
-           (local [(define playhead (world-play-head w))
+           (local [(define playhead (if (< (world1-play-head w) END-TIME) (world1-play-head w) 0))
                    (define next-playhead (+ playhead PLAY-CHUNK))]
              (both (pstream-queue ps
                                   (clip snd playhead next-playhead)
                                   next-start)
-                   (make-world next-playhead 
+                   (make-world1 next-playhead 
                                (+ next-start PLAY-CHUNK)
-                               (world-playing? w))))]
+                               (world1-playing? w))))]
           [else w])))
 
 ;; call maybe-play-chunk if song is not paused
 (define (maybe-maybe-play-chunk cur w)
-  (cond [(world-playing? w) (maybe-play-chunk cur w)]
+  (cond [(world1-playing? w) (maybe-play-chunk cur w)]
         [else w]))
 
 ;; the on-tick function. calls maybe-play-chunk.
@@ -70,14 +79,20 @@
 ;; THE GRAPHICS / UI 
 
 (define WORLD-WIDTH 650)
-(define WORLD-HEIGHT 1000)
+(define WORLD-HEIGHT 650)
 (define SLIDER-WIDTH (- WORLD-WIDTH 150))
 
-;; the "play" triangle
-(define PLAY-IMG
+;; the "play" circle
+(define PLAY-IMG1
   (circle 50 "solid" "blue"))
+(define PLAY-IMG2
+  (circle 50 "solid" "red"))
+(define PLAY-IMG3
+  (circle 50 "solid" "purple"))
+(define PLAY-IMG4
+  (circle 50 "solid" "green"))
 
-;; the "pause" rectangles
+;; the "pause" circle
 (define PAUSE-IMG
   (circle 50 "outline" "black"))
 
@@ -88,39 +103,40 @@
    w
    (place-image (rectangle 10 100 "solid" "black")
                 (+ 150
-                   (* SLIDER-WIDTH (/ (world-play-head w) (rs-frames snd))))
+                   (* SLIDER-WIDTH (/ (world1-play-head w) (rs-frames snd))))
                 100
-                (place-image (rectangle 500 100 "outline" "black")
-                400
-                100
-                (empty-scene WORLD-WIDTH WORLD-HEIGHT)))))
+                (place-image (rectangle 500 100 "outline" "black") 400 100
+                (place-image (rectangle 500 100 "outline" "black") 400 250
+                (place-image (rectangle 500 100 "outline" "black") 400 400
+                (place-image (rectangle 500 100 "outline" "black") 400 550
+                (empty-scene WORLD-WIDTH WORLD-HEIGHT))))))))
 
 
 ;; draw the appropriate play/pause shape on a scene
 ;; world scene -> scene
 (define (draw-play w scene)
-  (cond [(world-playing? w) 
-         (place-image
-          PLAY-IMG
-          75
-          100
-          scene)]
-        [else 
-         (place-image
-          PAUSE-IMG
-          75
-          100
-          scene)]))
+       (place-image (circle 50 (if (not (world1-playing? w)) "outline" "solid") 
+                            (if (not (world1-playing? w)) "black" "blue")) 75 100
+       (place-image (circle 50 (if (not (world1-playing? w)) "outline" "solid") 
+                            (if (not (world1-playing? w)) "black" "red")) 75 250
+       (place-image (circle 50 (if (not (world1-playing? w)) "outline" "solid") 
+                            (if (not (world1-playing? w)) "black" "purple")) 75 400
+       (place-image (circle 50 (if (not (world1-playing? w)) "outline" "solid") 
+                            (if (not (world1-playing? w)) "black" "green")) 75 550
+                    scene))))
+  )
+  
+
 
 ;; change the world when a key is pressed
 ;; world number number event frame -> world
 (define (keh-wrapper w key cur-time)
   (cond [(key=? key "1")
-         (make-world
-          (world-play-head w)
-          (max (world-next-start w)
+         (make-world1
+          (world1-play-head w)
+          (max (world1-next-start w)
                cur-time)
-          (not (world-playing? w)))]
+          (not (world1-playing? w)))]
         ;; some other kind of event:
         [else w]))
 
@@ -136,5 +152,3 @@
           [to-draw draw-world]
           [on-tick tock]
           [on-key keh])
-
-(draw-world (make-world (s 1) (s 2) true))

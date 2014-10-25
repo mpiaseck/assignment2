@@ -44,7 +44,6 @@
   (big-bang (list 0 0 0 0)
             [on-key onkey]
             [to-draw gui_circle]
-            ;[on-tick tock 1/28]
             )
 
 
