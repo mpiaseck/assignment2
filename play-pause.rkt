@@ -82,20 +82,6 @@
 (define WORLD-HEIGHT 650)
 (define SLIDER-WIDTH (- WORLD-WIDTH 150))
 
-;; the "play" circle
-(define PLAY-IMG1
-  (circle 50 "solid" "blue"))
-(define PLAY-IMG2
-  (circle 50 "solid" "red"))
-(define PLAY-IMG3
-  (circle 50 "solid" "purple"))
-(define PLAY-IMG4
-  (circle 50 "solid" "green"))
-
-;; the "pause" circle
-(define PAUSE-IMG
-  (circle 50 "outline" "black"))
-
 ;; draw a blank scene with a play head and a play/pause button
 ;; world -> scene
 (define (draw-world w)
