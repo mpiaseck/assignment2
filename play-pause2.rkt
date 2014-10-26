@@ -134,23 +134,23 @@
                cur-time)
           (not (world-playing? (system-world1 w)))) (system-world2 w) (system-world3 w) (system-world4 w))]
         [(key=? key "2")
-         (make-system (make-world
+         (make-system (system-world1 w) (make-world
           (world-play-head (system-world2 w))
           (max (world-next-start (system-world2 w))
                cur-time)
-          (not (world-playing? (system-world2 w)))) (system-world1 w) (system-world3 w) (system-world4 w))]
+          (not (world-playing? (system-world2 w)))) (system-world3 w) (system-world4 w))]
         [(key=? key "3")
-         (make-system (make-world
+         (make-system (system-world1 w) (system-world2 w) (make-world
           (world-play-head (system-world3 w))
           (max (world-next-start (system-world3 w))
                cur-time)
-          (not (world-playing? (system-world3 w)))) (system-world1 w) (system-world2 w) (system-world4 w))]
+          (not (world-playing? (system-world3 w)))) (system-world4 w))]
         [(key=? key "4")
-         (make-system (make-world
+         (make-system (system-world1 w) (system-world2 w) (system-world3 w) (make-world
           (world-play-head (system-world4 w))
           (max (world-next-start (system-world4 w))
                cur-time)
-          (not (world-playing? (system-world4 w)))) (system-world1 w) (system-world2 w) (system-world3 w))]
+          (not (world-playing? (system-world4 w)))))]
         ;; some other kind of event:
         [else w]))
 
