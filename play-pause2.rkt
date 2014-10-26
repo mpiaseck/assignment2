@@ -17,8 +17,7 @@
              0 END-TIME1))
 (define snd2 (rs-read/clip "/Users/Matt/Google Drive/Cal Poly/CPE/Assignment 2/cinematic-boom.wav"
              0 END-TIME2))
-; still trying to figure out what's wrong with this code
-#;(define snd3 (rs-read/clip "/Users/Matt/Google Drive/Cal Poly/CPE/Assignment 2/cellos.wav"
+(define snd3 (rs-read/clip "/Users/Matt/Google Drive/Cal Poly/CPE/Assignment 2/cellos.wav"
              0 END-TIME3))
 (define snd4 (rs-read/clip "/Users/Matt/Google Drive/Cal Poly/CPE/Assignment 2/guitar-ominous.wav"
              0 END-TIME4))
@@ -86,7 +85,7 @@
                                (+ next-start PLAY-CHUNK)
                                (world-playing? (system-world2 w))) (system-world3 w) (system-world4 w))))]
           [else w])))
-#;(define (maybe-play-chunk3 cur w)
+(define (maybe-play-chunk3 cur w)
   (local [(define next-start (world-next-start (system-world3 w)))]
     (cond [(time-to-play? cur next-start)
            (local [(define playhead (if (< (world-play-head (system-world3 w)) END-TIME3) (world-play-head (system-world3 w)) 0))
@@ -116,7 +115,7 @@
 (define (maybe-maybe-play-chunk cur1 cur2 cur3 cur4 w)
   (cond [(world-playing? (system-world1 w)) (maybe-play-chunk cur1 w)]
         [(world-playing? (system-world2 w)) (maybe-play-chunk2 cur2 w)]
-        ;[(world-playing? (system-world3 w)) (maybe-play-chunk3 cur3 w)]
+        [(world-playing? (system-world3 w)) (maybe-play-chunk3 cur3 w)]
         [(world-playing? (system-world4 w)) (maybe-play-chunk4 cur4 w)]
         [else w]))
 
@@ -140,6 +139,7 @@
 (define (draw-world w)
   (draw-play
    w
+   (place-image (text "Halloween Looper" 24 "orange") (/ WORLD-WIDTH 2) 25
    (place-image (rectangle 10 100 "solid" "black")
                 (+ 150
                    (* SLIDER-WIDTH (/ (world-play-head (system-world1 w)) (rs-frames snd1))))
@@ -148,33 +148,37 @@
                 (+ 150
                    (* SLIDER-WIDTH (/ (world-play-head (system-world2 w)) (rs-frames snd2))))
                 250
-   ;(place-image (rectangle 10 100 "solid" "black")
-    ;            (+ 150
-     ;              (* SLIDER-WIDTH (/ (world-play-head (system-world3 w)) (rs-frames snd3))))
-      ;          400
+   (place-image (rectangle 10 100 "solid" "black")
+                (+ 150
+                   (* SLIDER-WIDTH (/ (world-play-head (system-world3 w)) (rs-frames snd3))))
+                400
    (place-image (rectangle 10 100 "solid" "black")
                 (+ 150
                    (* SLIDER-WIDTH (/ (world-play-head (system-world4 w)) (rs-frames snd4))))
-                550             
+                550 
                 (place-image (rectangle 500 100 "outline" "black") 400 100
                 (place-image (rectangle 500 100 "outline" "black") 400 250
                 (place-image (rectangle 500 100 "outline" "black") 400 400
                 (place-image (rectangle 500 100 "outline" "black") 400 550
-                (empty-scene WORLD-WIDTH WORLD-HEIGHT))))))))))
+                (empty-scene WORLD-WIDTH WORLD-HEIGHT))))))))))))
 
 
 ;; draw the appropriate play/pause shapes on a scene
 ;; world scene -> scene
 (define (draw-play w scene)
+                       (place-image (text "Piano" 16 "black") 75 100
+                       (place-image (text "Boom" 16 "black") 75 250
+                       (place-image (text "Cellos" 16 "black") 75 400
+                       (place-image (text "Guitar" 16 "black") 75 550
        (place-image (circle 50 (if (not (world-playing? (system-world1 w))) "outline" "solid") 
-                            (if (not (world-playing? (system-world1 w))) "black" "blue")) 75 100                                                                        
+                            (if (not (world-playing? (system-world1 w))) "black" "orange")) 75 100                                                                        
        (place-image (circle 50 (if (not (world-playing? (system-world2 w))) "outline" "solid") 
-                            (if (not (world-playing? (system-world2 w))) "black" "red")) 75 250
+                            (if (not (world-playing? (system-world2 w))) "black" "orange")) 75 250
        (place-image (circle 50 (if (not (world-playing? (system-world3 w))) "outline" "solid") 
-                            (if (not (world-playing? (system-world3 w))) "black" "purple")) 75 400
+                            (if (not (world-playing? (system-world3 w))) "black" "orange")) 75 400
        (place-image (circle 50 (if (not (world-playing? (system-world4 w))) "outline" "solid") 
-                            (if (not (world-playing? (system-world4 w))) "black" "green")) 75 550
-                    scene))))
+                            (if (not (world-playing? (system-world4 w))) "black" "orange")) 75 550
+                    scene))))))))
   )
   
 
@@ -206,7 +210,6 @@
           (max (world-next-start (system-world4 w))
                cur-time)
           (not (world-playing? (system-world4 w)))))]
-        ;; some other kind of event:
         [else w]))
 
 ;; deliver the current time to the key handler along
