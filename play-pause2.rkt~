@@ -70,9 +70,9 @@
              (both (pstream-queue ps1
                                   (clip snd1 playhead next-playhead)
                                   next-start)
-                   (make-system (make-world next-playhead 
+                   (make-world next-playhead 
                                (+ next-start PLAY-CHUNK)
-                               (world-playing? (system-world1 w))) (system-world2 w) (system-world3 w) (system-world4 w))))]
+                               (world-playing? (system-world1 w)))))]
           [else w])))
 
 ;; call maybe-play-chunk if song is not paused
@@ -112,7 +112,9 @@
 ;; world scene -> scene
 (define (draw-play w scene)
        (place-image (circle 50 (if (not (world-playing? (system-world1 w))) "outline" "solid") 
-                            (if (not (world-playing? (system-world1 w))) "black" "blue")) 75 100                                                                        
+                            (if (not (world-playing? (system-world1 w))) "black" "blue")) 75 100
+  ; change the worlds playing boolean values respectively once we get the
+  ; nested structures to work. This will have the circles drawn appropriately                                                                         
        (place-image (circle 50 (if (not (world-playing? (system-world2 w))) "outline" "solid") 
                             (if (not (world-playing? (system-world2 w))) "black" "red")) 75 250
        (place-image (circle 50 (if (not (world-playing? (system-world3 w))) "outline" "solid") 
@@ -132,25 +134,7 @@
           (world-play-head (system-world1 w))
           (max (world-next-start (system-world1 w))
                cur-time)
-          (not (world-playing? (system-world1 w)))) (system-world2 w) (system-world3 w) (system-world4 w))]
-        [(key=? key "2")
-         (make-system (make-world
-          (world-play-head (system-world2 w))
-          (max (world-next-start (system-world2 w))
-               cur-time)
-          (not (world-playing? (system-world2 w)))) (system-world1 w) (system-world3 w) (system-world4 w))]
-        [(key=? key "3")
-         (make-system (make-world
-          (world-play-head (system-world3 w))
-          (max (world-next-start (system-world3 w))
-               cur-time)
-          (not (world-playing? (system-world3 w)))) (system-world1 w) (system-world2 w) (system-world4 w))]
-        [(key=? key "4")
-         (make-system (make-world
-          (world-play-head (system-world4 w))
-          (max (world-next-start (system-world4 w))
-               cur-time)
-          (not (world-playing? (system-world4 w)))) (system-world1 w) (system-world2 w) (system-world3 w))]
+          (not (world-playing? (system-world1 w)))) (system-world2 w) (system-world2 w) (system-world2 w))]
         ;; some other kind of event:
         [else w]))
 
