@@ -1,6 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-intermediate-reader.ss" "lang")((modname assignment2) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ())))
+#reader(lib "htdp-intermediate-reader.ss" "lang")((modname assignment2rev1) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ())))
 (require rsound)
 (require 2htdp/image)
 (require 2htdp/universe)
@@ -64,7 +64,10 @@
 ;************************* need to play simultanesouly*****************************
 (define (maybe-play-chunk cur w)
   (local [(define next-start (world-next-start (system-world1 w)))]
-    (cond [(time-to-play? cur next-start)
+         [(define next-start (world-next-start (system-world2 w)))]
+         [(define next-start (world-next-start (system-world3 w)))]
+         [(define next-start (world-next-start (system-world4 w)))]
+    (cond [(time-to-play? cur1 next-start)
            (local [(define playhead (if (< (world-play-head (system-world1 w)) END-TIME1) (world-play-head (system-world1 w)) 0))
                    (define next-playhead (+ playhead PLAY-CHUNK))]
              (both (pstream-queue ps1
@@ -73,10 +76,7 @@
                    (make-system (make-world next-playhead 
                                (+ next-start PLAY-CHUNK)
                                (world-playing? (system-world1 w))) (system-world2 w) (system-world3 w) (system-world4 w))))]
-          [else w])))
-(define (maybe-play-chunk2 cur w)
-  (local [(define next-start (world-next-start (system-world2 w)))]
-    (cond [(time-to-play? cur next-start)
+          [(time-to-play? cur2 next-start)
            (local [(define playhead (if (< (world-play-head (system-world2 w)) END-TIME2) (world-play-head (system-world2 w)) 0))
                    (define next-playhead (+ playhead PLAY-CHUNK))]
              (both (pstream-queue ps2
@@ -85,10 +85,7 @@
                    (make-system (system-world1 w) (make-world next-playhead 
                                (+ next-start PLAY-CHUNK)
                                (world-playing? (system-world2 w))) (system-world3 w) (system-world4 w))))]
-          [else w])))
-(define (maybe-play-chunk3 cur w)
-  (local [(define next-start (world-next-start (system-world3 w)))]
-    (cond [(time-to-play? cur next-start)
+          [(time-to-play? cur3 next-start)
            (local [(define playhead (if (< (world-play-head (system-world3 w)) END-TIME3) (world-play-head (system-world3 w)) 0))
                    (define next-playhead (+ playhead PLAY-CHUNK))]
              (both (pstream-queue ps3
@@ -97,10 +94,7 @@
                    (make-system (system-world1 w) (system-world2 w) (make-world next-playhead 
                                (+ next-start PLAY-CHUNK)
                                (world-playing? (system-world3 w))) (system-world4 w))))]
-          [else w])))
-(define (maybe-play-chunk4 cur w)
-  (local [(define next-start (world-next-start (system-world4 w)))]
-    (cond [(time-to-play? cur next-start)
+          [(time-to-play? cur4 next-start)
            (local [(define playhead (if (< (world-play-head (system-world4 w)) END-TIME4) (world-play-head (system-world4 w)) 0))
                    (define next-playhead (+ playhead PLAY-CHUNK))]
              (both (pstream-queue ps4

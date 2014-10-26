@@ -120,7 +120,7 @@
         [(world-playing? (system-world4 w)) (maybe-play-chunk4 cur4 w)]
         [else w]))
 
-;; the on-tick function. calls maybe-play-chunk
+;; the on-tick function. calls maybe-play-chunk.
 ;; world -> world
 (define (tock w)
   (maybe-maybe-play-chunk (pstream-current-frame ps1)
@@ -141,7 +141,6 @@
   (draw-play
    w
    (place-image (text "Halloween Looper" 24 "orange") (/ WORLD-WIDTH 2) 25
-   (place-image (text "Racket Power" 26 "red") (/ WORLD-WIDTH 2) 625            
    (place-image (rectangle 10 100 "solid" "black")
                 (+ 150
                    (* SLIDER-WIDTH (/ (world-play-head (system-world1 w)) (rs-frames snd1))))
@@ -162,7 +161,7 @@
                 (place-image (rectangle 500 100 "outline" "black") 400 250
                 (place-image (rectangle 500 100 "outline" "black") 400 400
                 (place-image (rectangle 500 100 "outline" "black") 400 550
-                (empty-scene WORLD-WIDTH WORLD-HEIGHT)))))))))))))
+                (empty-scene WORLD-WIDTH WORLD-HEIGHT))))))))))))
 
 
 ;; draw the appropriate play/pause shapes on a scene
