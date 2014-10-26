@@ -74,16 +74,59 @@
                                (+ next-start PLAY-CHUNK)
                                (world-playing? (system-world1 w))) (system-world2 w) (system-world3 w) (system-world4 w))))]
           [else w])))
+(define (maybe-play-chunk2 cur w)
+  (local [(define next-start (world-next-start (system-world2 w)))]
+    (cond [(time-to-play? cur next-start)
+           (local [(define playhead (if (< (world-play-head (system-world2 w)) END-TIME2) (world-play-head (system-world2 w)) 0))
+                   (define next-playhead (+ playhead PLAY-CHUNK))]
+             (both (pstream-queue ps2
+                                  (clip snd2 playhead next-playhead)
+                                  next-start)
+                   (make-system (system-world1 w) (make-world next-playhead 
+                               (+ next-start PLAY-CHUNK)
+                               (world-playing? (system-world2 w))) (system-world3 w) (system-world4 w))))]
+          [else w])))
+#;(define (maybe-play-chunk3 cur w)
+  (local [(define next-start (world-next-start (system-world3 w)))]
+    (cond [(time-to-play? cur next-start)
+           (local [(define playhead (if (< (world-play-head (system-world3 w)) END-TIME3) (world-play-head (system-world3 w)) 0))
+                   (define next-playhead (+ playhead PLAY-CHUNK))]
+             (both (pstream-queue ps3
+                                  (clip snd3 playhead next-playhead)
+                                  next-start)
+                   (make-system (system-world1 w) (system-world2 w) (make-world next-playhead 
+                               (+ next-start PLAY-CHUNK)
+                               (world-playing? (system-world3 w))) (system-world4 w))))]
+          [else w])))
+(define (maybe-play-chunk4 cur w)
+  (local [(define next-start (world-next-start (system-world4 w)))]
+    (cond [(time-to-play? cur next-start)
+           (local [(define playhead (if (< (world-play-head (system-world4 w)) END-TIME4) (world-play-head (system-world4 w)) 0))
+                   (define next-playhead (+ playhead PLAY-CHUNK))]
+             (both (pstream-queue ps4
+                                  (clip snd4 playhead next-playhead)
+                                  next-start)
+                   (make-system (system-world1 w) (system-world2 w) (system-world3 w) (make-world next-playhead 
+                               (+ next-start PLAY-CHUNK)
+                               (world-playing? (system-world4 w))))))]
+          [else w])))
+
 
 ;; call maybe-play-chunk if song is not paused
-(define (maybe-maybe-play-chunk cur w)
-  (cond [(world-playing? (system-world1 w)) (maybe-play-chunk cur w)]
+(define (maybe-maybe-play-chunk cur1 cur2 cur3 cur4 w)
+  (cond [(world-playing? (system-world1 w)) (maybe-play-chunk cur1 w)]
+        [(world-playing? (system-world2 w)) (maybe-play-chunk2 cur2 w)]
+        ;[(world-playing? (system-world3 w)) (maybe-play-chunk3 cur3 w)]
+        [(world-playing? (system-world4 w)) (maybe-play-chunk4 cur4 w)]
         [else w]))
 
 ;; the on-tick function. calls maybe-play-chunk.
 ;; world -> world
 (define (tock w)
-  (maybe-maybe-play-chunk (pstream-current-frame ps1) w))
+  (maybe-maybe-play-chunk (pstream-current-frame ps1)
+                          (pstream-current-frame ps2)
+                          (pstream-current-frame ps3)
+                          (pstream-current-frame ps4) w))
 
 
 ;; -----THE GUI-------------------------- 
@@ -101,11 +144,23 @@
                 (+ 150
                    (* SLIDER-WIDTH (/ (world-play-head (system-world1 w)) (rs-frames snd1))))
                 100
+   (place-image (rectangle 10 100 "solid" "black")
+                (+ 150
+                   (* SLIDER-WIDTH (/ (world-play-head (system-world2 w)) (rs-frames snd2))))
+                250
+   ;(place-image (rectangle 10 100 "solid" "black")
+    ;            (+ 150
+     ;              (* SLIDER-WIDTH (/ (world-play-head (system-world3 w)) (rs-frames snd3))))
+      ;          400
+   (place-image (rectangle 10 100 "solid" "black")
+                (+ 150
+                   (* SLIDER-WIDTH (/ (world-play-head (system-world4 w)) (rs-frames snd4))))
+                550             
                 (place-image (rectangle 500 100 "outline" "black") 400 100
                 (place-image (rectangle 500 100 "outline" "black") 400 250
                 (place-image (rectangle 500 100 "outline" "black") 400 400
                 (place-image (rectangle 500 100 "outline" "black") 400 550
-                (empty-scene WORLD-WIDTH WORLD-HEIGHT))))))))
+                (empty-scene WORLD-WIDTH WORLD-HEIGHT))))))))))
 
 
 ;; draw the appropriate play/pause shapes on a scene
