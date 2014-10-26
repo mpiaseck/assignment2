@@ -61,6 +61,7 @@
 ;; queue a sound if it's time, and advance the
 ;; world and the playhead
 ;; number world -> world
+;************************* need to play simultanesouly*****************************
 (define (maybe-play-chunk cur w)
   (local [(define next-start (world-next-start (system-world1 w)))]
     (cond [(time-to-play? cur next-start)
