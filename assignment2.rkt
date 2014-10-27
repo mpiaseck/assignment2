@@ -4,7 +4,7 @@
 (require rsound)
 (require 2htdp/image)
 (require 2htdp/universe)
-
+ 
 (define SR 44100)
 (define (s sec) (* SR sec))
 (define (both a b) b)
@@ -12,7 +12,7 @@
 (define END-TIME2 (s 7))
 (define END-TIME3 (s 20))
 (define END-TIME4 (s 23))
-
+ 
 (define snd1 (rs-read/clip "/Users/Matt/Google Drive/Cal Poly/CPE/Assignment 2/ghost-piano_4bar.wav"
              0 END-TIME1))
 (define snd2 (rs-read/clip "/Users/Matt/Google Drive/Cal Poly/CPE/Assignment 2/cinematic-boom.wav"
@@ -21,7 +21,7 @@
              0 END-TIME3))
 (define snd4 (rs-read/clip "/Users/Matt/Google Drive/Cal Poly/CPE/Assignment 2/guitar-ominous.wav"
              0 END-TIME4))
-
+ 
 ;; a world is (make-world frame frame boolean), representing
 ;; the frame at which to continue playing, and the
 ;; pstream time at which to play it, and whether it's playing
@@ -35,29 +35,29 @@
                                     INITIAL-WORLD2
                                     INITIAL-WORLD3
                                     INITIAL-WORLD4))
-
-
+ 
+ 
 ;; -----PLAYING SOUNDS------------------------
-
+ 
 ;; how much of the song to play each time?
 (define PLAY-CHUNK (round (s 0.1)))
 ;; how far ahead of time should we queue sounds?
 (define LEAD-FRAMES (round (s 0.05)))
-
+ 
 ;; the pstreams that we're going to use:
 (define ps1 (make-pstream))
 (define ps2 (make-pstream))
 (define ps3 (make-pstream))
 (define ps4 (make-pstream))
-
-
+ 
+ 
 ;; given the current pstream time and the next
 ;; time to play, return true if it's time to play
 ;; frame frame -> boolean
 (define (time-to-play? cur next)
   (< (- next cur) LEAD-FRAMES))
-
-
+ 
+ 
 ;; queue a sound if it's time, and advance the
 ;; world and the playhead
 ;; number world -> world
@@ -65,15 +65,15 @@
 (define (maybe-play-chunk cur1 cur2 cur3 cur4 w)
   (local [(define next-start (world-next-start (system-world1 w)))
          (define next-start2 (world-next-start (system-world2 w)))
-         (define next-start3 (world-next-start (system-world2 w)))
-         (define next-start4 (world-next-start (system-world2 w)))]
+         (define next-start3 (world-next-start (system-world3 w)))
+         (define next-start4 (world-next-start (system-world4 w)))]
     (cond [(and (time-to-play? cur1 next-start) (world-playing? (system-world1 w)))
            (local [(define playhead (if (< (world-play-head (system-world1 w)) END-TIME1) (world-play-head (system-world1 w)) 0))
                    (define next-playhead (+ playhead PLAY-CHUNK))]
              (both (pstream-queue ps1
                                   (clip snd1 playhead next-playhead)
                                   next-start)
-                   (make-system (make-world next-playhead 
+                   (make-system (make-world next-playhead
                                (+ next-start PLAY-CHUNK)
                                (world-playing? (system-world1 w))) (system-world2 w) (system-world3 w) (system-world4 w))))]
           [(and (time-to-play? cur2 next-start2) (world-playing? (system-world2 w)))
@@ -82,7 +82,7 @@
              (both (pstream-queue ps2
                                   (clip snd2 playhead next-playhead)
                                   next-start2)
-                   (make-system (system-world1 w) (make-world next-playhead 
+                   (make-system (system-world1 w) (make-world next-playhead
                                (+ next-start2 PLAY-CHUNK)
                                (world-playing? (system-world2 w))) (system-world3 w) (system-world4 w))))]
           [(and (time-to-play? cur3 next-start3) (world-playing? (system-world3 w)))
@@ -91,7 +91,7 @@
              (both (pstream-queue ps3
                                   (clip snd3 playhead next-playhead)
                                   next-start3)
-                   (make-system (system-world1 w) (system-world2 w) (make-world next-playhead 
+                   (make-system (system-world1 w) (system-world2 w) (make-world next-playhead
                                (+ next-start3 PLAY-CHUNK)
                                (world-playing? (system-world3 w))) (system-world4 w))))]
           [(and (time-to-play? cur4 next-start4) (world-playing? (system-world4 w)))
@@ -100,12 +100,12 @@
              (both (pstream-queue ps4
                                   (clip snd4 playhead next-playhead)
                                   next-start4)
-                   (make-system (system-world1 w) (system-world2 w) (system-world3 w) (make-world next-playhead 
+                   (make-system (system-world1 w) (system-world2 w) (system-world3 w) (make-world next-playhead
                                (+ next-start4 PLAY-CHUNK)
                                (world-playing? (system-world4 w))))))]
-          [else w]))) 
-
-
+          [else w])))
+ 
+ 
 ;; the on-tick function. calls maybe-play-chunk
 ;; world -> world
 (define (tock w)
@@ -113,14 +113,14 @@
                           (pstream-current-frame ps2)
                           (pstream-current-frame ps3)
                           (pstream-current-frame ps4) w))
-
-
-;; -----THE GUI-------------------------- 
-
+ 
+ 
+;; -----THE GUI--------------------------
+ 
 (define WORLD-WIDTH 650)
 (define WORLD-HEIGHT 650)
 (define SLIDER-WIDTH (- WORLD-WIDTH 150))
-
+ 
 ;; draw a blank scene with a 4 play heads and 4 play/pause circles
 ;; world -> scene
 (define (draw-world w)
@@ -143,14 +143,14 @@
    (place-image (rectangle 10 100 "solid" "black")
                 (+ 150
                    (* SLIDER-WIDTH (/ (world-play-head (system-world4 w)) (rs-frames snd4))))
-                550 
+                550
                 (place-image (rectangle 500 100 "outline" "black") 400 100
                 (place-image (rectangle 500 100 "outline" "black") 400 250
                 (place-image (rectangle 500 100 "outline" "black") 400 400
                 (place-image (rectangle 500 100 "outline" "black") 400 550
                 (empty-scene WORLD-WIDTH WORLD-HEIGHT)))))))))))))
-
-
+ 
+ 
 ;; draw the appropriate play/pause shapes on a scene
 ;; world scene -> scene
 (define (draw-play w scene)
@@ -158,19 +158,19 @@
                        (place-image (text "Boom" 16 "black") 75 250
                        (place-image (text "Cellos" 16 "black") 75 400
                        (place-image (text "Guitar" 16 "black") 75 550
-       (place-image (circle 50 (if (not (world-playing? (system-world1 w))) "outline" "solid") 
+       (place-image (circle 50 (if (not (world-playing? (system-world1 w))) "outline" "solid")
                             (if (not (world-playing? (system-world1 w))) "black" "orange")) 75 100                                                                        
-       (place-image (circle 50 (if (not (world-playing? (system-world2 w))) "outline" "solid") 
+       (place-image (circle 50 (if (not (world-playing? (system-world2 w))) "outline" "solid")
                             (if (not (world-playing? (system-world2 w))) "black" "orange")) 75 250
-       (place-image (circle 50 (if (not (world-playing? (system-world3 w))) "outline" "solid") 
+       (place-image (circle 50 (if (not (world-playing? (system-world3 w))) "outline" "solid")
                             (if (not (world-playing? (system-world3 w))) "black" "orange")) 75 400
-       (place-image (circle 50 (if (not (world-playing? (system-world4 w))) "outline" "solid") 
+       (place-image (circle 50 (if (not (world-playing? (system-world4 w))) "outline" "solid")
                             (if (not (world-playing? (system-world4 w))) "black" "orange")) 75 550
                     scene))))))))
   )
-  
-
-
+ 
+ 
+ 
 ;; change the world when a key is pressed
 ;; world number number event frame -> world
 (define (keh-wrapper w key cur-time)
@@ -199,7 +199,7 @@
                cur-time)
           (not (world-playing? (system-world4 w)))))]
         [else w]))
-
+ 
 ;; deliver the current time to the key handler along
 ;; with its other arguments
 ;; -- this function exists to isolate the inner function
@@ -207,7 +207,7 @@
 ;; world number number event -> world
 (define (keh w key)
   (keh-wrapper w key (pstream-current-frame ps1)))
-
+ 
 (big-bang INITIAL-SYSTEM
           [to-draw draw-world]
           [on-tick tock 1/1000]
