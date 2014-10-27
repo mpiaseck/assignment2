@@ -62,9 +62,12 @@
 ;; world and the playhead
 ;; number world -> world
 ;************************* need to play simultanesouly*****************************
-(define (maybe-play-chunk cur w)
-  (local [(define next-start (world-next-start (system-world1 w)))]
-    (cond [(time-to-play? cur next-start)
+(define (maybe-play-chunk cur1 cur2 cur3 cur4 w)
+  (local [(define next-start (world-next-start (system-world1 w)))
+         (define next-start2 (world-next-start (system-world2 w)))
+         (define next-start3 (world-next-start (system-world2 w)))
+         (define next-start4 (world-next-start (system-world2 w)))]
+    (cond [(and (time-to-play? cur1 next-start) (world-playing? (system-world1 w)))
            (local [(define playhead (if (< (world-play-head (system-world1 w)) END-TIME1) (world-play-head (system-world1 w)) 0))
                    (define next-playhead (+ playhead PLAY-CHUNK))]
              (both (pstream-queue ps1
@@ -73,57 +76,40 @@
                    (make-system (make-world next-playhead 
                                (+ next-start PLAY-CHUNK)
                                (world-playing? (system-world1 w))) (system-world2 w) (system-world3 w) (system-world4 w))))]
-          [else w])))
-(define (maybe-play-chunk2 cur w)
-  (local [(define next-start (world-next-start (system-world2 w)))]
-    (cond [(time-to-play? cur next-start)
+          [(and (time-to-play? cur2 next-start2) (world-playing? (system-world2 w)))
            (local [(define playhead (if (< (world-play-head (system-world2 w)) END-TIME2) (world-play-head (system-world2 w)) 0))
                    (define next-playhead (+ playhead PLAY-CHUNK))]
              (both (pstream-queue ps2
                                   (clip snd2 playhead next-playhead)
-                                  next-start)
+                                  next-start2)
                    (make-system (system-world1 w) (make-world next-playhead 
-                               (+ next-start PLAY-CHUNK)
+                               (+ next-start2 PLAY-CHUNK)
                                (world-playing? (system-world2 w))) (system-world3 w) (system-world4 w))))]
-          [else w])))
-(define (maybe-play-chunk3 cur w)
-  (local [(define next-start (world-next-start (system-world3 w)))]
-    (cond [(time-to-play? cur next-start)
+          [(and (time-to-play? cur3 next-start3) (world-playing? (system-world3 w)))
            (local [(define playhead (if (< (world-play-head (system-world3 w)) END-TIME3) (world-play-head (system-world3 w)) 0))
                    (define next-playhead (+ playhead PLAY-CHUNK))]
              (both (pstream-queue ps3
                                   (clip snd3 playhead next-playhead)
-                                  next-start)
+                                  next-start3)
                    (make-system (system-world1 w) (system-world2 w) (make-world next-playhead 
-                               (+ next-start PLAY-CHUNK)
+                               (+ next-start3 PLAY-CHUNK)
                                (world-playing? (system-world3 w))) (system-world4 w))))]
-          [else w])))
-(define (maybe-play-chunk4 cur w)
-  (local [(define next-start (world-next-start (system-world4 w)))]
-    (cond [(time-to-play? cur next-start)
+          [(and (time-to-play? cur4 next-start4) (world-playing? (system-world4 w)))
            (local [(define playhead (if (< (world-play-head (system-world4 w)) END-TIME4) (world-play-head (system-world4 w)) 0))
                    (define next-playhead (+ playhead PLAY-CHUNK))]
              (both (pstream-queue ps4
                                   (clip snd4 playhead next-playhead)
-                                  next-start)
+                                  next-start4)
                    (make-system (system-world1 w) (system-world2 w) (system-world3 w) (make-world next-playhead 
-                               (+ next-start PLAY-CHUNK)
+                               (+ next-start4 PLAY-CHUNK)
                                (world-playing? (system-world4 w))))))]
-          [else w])))
+          [else w]))) 
 
-
-;; call maybe-play-chunk if song is not paused
-(define (maybe-maybe-play-chunk cur1 cur2 cur3 cur4 w)
-  (cond [(world-playing? (system-world1 w)) (maybe-play-chunk cur1 w)]
-        [(world-playing? (system-world2 w)) (maybe-play-chunk2 cur2 w)]
-        [(world-playing? (system-world3 w)) (maybe-play-chunk3 cur3 w)]
-        [(world-playing? (system-world4 w)) (maybe-play-chunk4 cur4 w)]
-        [else w]))
 
 ;; the on-tick function. calls maybe-play-chunk
 ;; world -> world
 (define (tock w)
-  (maybe-maybe-play-chunk (pstream-current-frame ps1)
+  (maybe-play-chunk (pstream-current-frame ps1)
                           (pstream-current-frame ps2)
                           (pstream-current-frame ps3)
                           (pstream-current-frame ps4) w))
@@ -224,5 +210,5 @@
 
 (big-bang INITIAL-SYSTEM
           [to-draw draw-world]
-          [on-tick tock]
+          [on-tick tock 1/1000]
           [on-key keh])
